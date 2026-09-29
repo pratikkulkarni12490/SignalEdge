@@ -4,8 +4,9 @@ NOTE ON RUNNING THIS: it makes real HTTPS calls (Upstox API, Upstox's instrument
 master file). It will NOT run inside a network-sandboxed Claude Code session —
 only outbound access to a small allowlist (GitHub, PyPI, npm, Anthropic) is
 permitted there. Run this on a machine with normal internet access and a valid
-Upstox token at the path in config.UPSTOX_TOKEN_FILE (see the main SignalEdge
-README / token_refresh.py for how that token gets created).
+Upstox token at the path in config.UPSTOX_TOKEN_FILE — run `python
+token_refresh.py` in this folder to get one (shared token file with the
+parent SignalEdge engine).
 """
 
 import csv, gzip, io, logging, os, sys, time

@@ -62,10 +62,12 @@ or all three (plus resolve/ingest) in one go:
 python run.py all
 ```
 
-**Prerequisite:** a valid Upstox access token at
-`../data/.upstox_token.json` — the same token file and refresh flow the main
-SignalEdge engine uses (see `../token_refresh.py`). If that file doesn't
-exist yet, run the parent project's auth flow first.
+**Prerequisite:** a valid Upstox access token at `../data/.upstox_token.json`
+— shared with the main SignalEdge engine (same Upstox account, same file).
+Refresh it with `python token_refresh.py` (a local copy of the parent
+project's Telegram-based auth flow — see the docstring at the top of that
+file for the step-by-step). Either copy writes to the same `TOKEN_FILE`, so
+run whichever is more convenient.
 
 ## Report
 

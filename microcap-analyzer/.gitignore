@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 data/microcap.db
 data/nse_instruments.csv.gz
+
+# Local-only: hardcoded Upstox API secret + Telegram bot token. Never commit.
+token_refresh.py
