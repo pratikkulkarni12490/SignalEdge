@@ -69,6 +69,11 @@ project's Telegram-based auth flow — see the docstring at the top of that
 file for the step-by-step). Either copy writes to the same `TOKEN_FILE`, so
 run whichever is more convenient.
 
+Both copies read their Upstox app key/secret and Telegram bot credentials
+from environment variables rather than hardcoding them — copy `../.env.example`
+to `../.env` and fill in real values (or export the vars yourself) before
+running `token_refresh.py`.
+
 ## Report
 
 `python run.py analyze` prints the latest signal per stock, ranked by

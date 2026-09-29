@@ -1,5 +1,11 @@
 """Upstox Token Refresh via Telegram.
 
+Copy of ../token_refresh.py, kept here so this project doesn't depend on
+reaching into the parent folder to re-auth. The token file itself is shared
+with the parent SignalEdge engine (same Upstox account) — see TOKEN_FILE
+below, which is pulled from config.py rather than re-hardcoded, so both
+copies of this script always agree on where the token lives.
+
 Flow:
 1. Bot sends you the auth URL
 2. You open it on phone, login to Upstox
@@ -8,24 +14,23 @@ Flow:
 5. Paste it back to the Telegram bot
 6. Bot exchanges code for token and saves it
 
-Requires these environment variables to be set (see .env.example):
+Requires these environment variables to be set (see ../.env.example):
   UPSTOX_API_KEY, UPSTOX_API_SECRET, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 """
 import json, os, sys, urllib.request, urllib.parse, time
 
+from config import UPSTOX_TOKEN_FILE
+
 def _require_env(name):
     value = os.environ.get(name)
     if not value:
-        sys.exit(f"Missing required environment variable: {name}. See .env.example.")
+        sys.exit(f"Missing required environment variable: {name}. See ../.env.example.")
     return value
 
 API_KEY = _require_env("UPSTOX_API_KEY")
 API_SECRET = _require_env("UPSTOX_API_SECRET")
 REDIRECT_URI = os.environ.get("UPSTOX_REDIRECT_URI", "http://127.0.0.1:8501/")
-TOKEN_FILE = os.environ.get(
-    "UPSTOX_TOKEN_FILE",
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", ".upstox_token.json"),
-)
+TOKEN_FILE = UPSTOX_TOKEN_FILE
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
 
 TG_TOKEN = _require_env("TELEGRAM_BOT_TOKEN")
@@ -55,15 +60,15 @@ def exchange_code(code):
 
 def main():
     auth_url = f"https://api.upstox.com/v2/login/authorization/dialog?client_id={API_KEY}&redirect_uri={urllib.parse.quote(REDIRECT_URI)}&response_type=code"
-    
+
     tg_send(f"🔑 *Token Refresh Required*\n\n1. Tap the link below\n2. Login to Upstox\n3. Page will fail to load (that's OK!)\n4. Copy the code from the URL bar\n   (after ?code=)\n5. Paste it here\n\n[Login to Upstox]({auth_url})")
-    
+
     print("Auth URL sent to Telegram. Waiting for code...")
-    
+
     # Poll for the code from Telegram
     last_update_id = 0
     deadline = time.time() + 300  # 5 min timeout
-    
+
     while time.time() < deadline:
         try:
             updates = tg_get_updates(last_update_id + 1)
@@ -72,10 +77,10 @@ def main():
                 msg = update.get("message", {})
                 text = msg.get("text", "").strip()
                 chat_id = msg.get("chat", {}).get("id", 0)
-                
+
                 if chat_id != TG_CHAT:
                     continue
-                
+
                 # Extract code from URL or plain text
                 import urllib.parse as _up
                 code = None
@@ -87,7 +92,7 @@ def main():
                 elif len(text) >= 4 and len(text) <= 20 and text.replace("_","").replace("-","").isalnum():
                     # Just the code pasted
                     code = text
-                
+
                 if code:
                     text = code  # use extracted code
                     print(f"Got code: {text}")
@@ -95,7 +100,7 @@ def main():
                         token_data = exchange_code(text)
                         with open(TOKEN_FILE, "w") as f:
                             json.dump(token_data, f, indent=2)
-                        
+
                         user = token_data.get("user_name", "?")
                         tg_send(f"✅ *Token Saved!*\n\nUser: {user}\nReady for trading.")
                         print(f"SUCCESS: Token saved for {user}")
@@ -103,13 +108,13 @@ def main():
                     except Exception as e:
                         tg_send(f"❌ *Token exchange failed*\n\n{str(e)[:200]}\n\nTry again — paste the code.")
                         print(f"Exchange failed: {e}")
-                
+
                 elif text.startswith("/refresh"):
                     tg_send(f"🔑 *Token Refresh*\n\n[Login to Upstox]({auth_url})\n\nPaste the code after login.")
         except Exception as e:
             print(f"Poll error: {e}")
             time.sleep(5)
-    
+
     tg_send("⏰ Token refresh timed out. Run /refresh to try again.")
     print("Timeout")
     return False
