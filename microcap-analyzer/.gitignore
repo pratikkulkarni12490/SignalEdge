@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+data/microcap.db
+data/nse_instruments.csv.gz

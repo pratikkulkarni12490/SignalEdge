@@ -1,0 +1,4 @@
+# Stdlib-only by design (urllib, sqlite3, csv, gzip) — nothing to install for
+# init-db / seed-universe / analyze. Nothing here yet; kept as a placeholder
+# in case ingestion later moves to `requests` for clearer error handling than
+# urllib gives, or reporting moves to pandas for CSV/Excel export.
